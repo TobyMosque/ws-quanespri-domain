@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator jsonSchema {
+  provider = "prisma-json-schema-generator"
+  includeRequiredFields = true
+}
+
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "../../backend/src/generated/nestjs-dto"
+  outputToNestJsResourceStructure = "false"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "false"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = ""
+  fileNamingStyle                 = "camel"
+}
+
+model Job {
+  /// @DtoCreateOptional
+  jobId     String   @db.Uuid @default(uuid()) @id
+  name      String
+
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoRelationCanConnectOnUpdate
+  people    Person[]
+
+  /// @DtoReadOnly
+  isDeleted Boolean  @default(false)
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+  revision  String   @db.Uuid @default(uuid())
+}
+
+model Company {
+  /// @DtoCreateOptional
+  companyId String   @db.Uuid @default(uuid()) @id
+  name      String
+
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoRelationCanConnectOnUpdate
+  people    Person[]
+
+  /// @DtoReadOnly
+  isDeleted Boolean  @default(false)
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+  revision  String   @db.Uuid @default(uuid())
+}
+
+model Person {
+  /// @DtoCreateOptional
+  personId  String   @db.Uuid @default(uuid()) @id
+  avatar    String
+  firstName String
+  lastName  String
+  email     String
+
+  jobId     String   @db.Uuid
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoRelationCanConnectOnUpdate
+  job       Job      @relation(fields: [jobId], references: [jobId])
+  companyId String   @db.Uuid
+  /// @DtoRelationCanConnectOnCreate
+  /// @DtoRelationCanConnectOnUpdate
+  company   Company  @relation(fields: [companyId], references: [companyId])
+
+  /// @DtoReadOnly
+  isDeleted Boolean  @default(false)
+  /// @DtoReadOnly
+  createdAt DateTime @default(now())
+  /// @DtoReadOnly
+  updatedAt DateTime @default(now())
+  /// @DtoReadOnly
+  deletedAt DateTime?
+  revision  String   @db.Uuid @default(uuid())
+
+  @@index([jobId])
+  @@index([companyId])
+}
